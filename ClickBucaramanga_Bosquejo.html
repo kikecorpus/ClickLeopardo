@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Click Bucaramanga — Bosquejo interactivo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#16241D;
+    --paper:#F6F1E4;
+    --paper-2:#ECE4D0;
+    --white:#FFFFFF;
+    --accent:#D6478E;
+    --accent-soft:#F6D8E6;
+    --accent-2:#F2A03D;
+    --green-deep:#132219;
+    --green-mid:#2B4636;
+    --muted:#6B7A6F;
+    --line:rgba(22,36,29,.13);
+    --font-display:'Bricolage Grotesque', sans-serif;
+    --font-body:'Inter', sans-serif;
+    --font-mono:'IBM Plex Mono', monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 15% -10%, #24402f 0%, transparent 45%),
+      radial-gradient(circle at 100% 0%, #1c3324 0%, transparent 40%),
+      var(--green-deep);
+    font-family:var(--font-body);
+    color:var(--paper);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .page{max-width:1180px;margin:0 auto;padding:56px 24px 80px;}
+
+  /* ---------- intro ---------- */
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:8px;
+    font-family:var(--font-mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--accent-2);margin-bottom:18px;
+  }
+  .eyebrow svg{width:14px;height:14px;color:var(--accent);}
+  .intro h1{
+    font-family:var(--font-display);font-weight:800;
+    font-size:clamp(2rem,4.6vw,3.4rem);line-height:1.04;letter-spacing:-.01em;
+    margin:0 0 14px;color:var(--paper);max-width:14ch;
+  }
+  .intro p{max-width:52ch;color:rgba(246,241,228,.72);font-size:1.02rem;line-height:1.55;margin:0 0 4px;}
+  .intro .hint{font-size:.88rem;color:rgba(246,241,228,.5);margin-top:10px;}
+
+  /* ---------- layout of mockups ---------- */
+  .mockups{display:flex;gap:44px;flex-wrap:wrap;align-items:flex-start;margin-top:52px;justify-content:center;}
+  .mock-label{
+    font-family:var(--font-mono);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+    color:rgba(246,241,228,.55);margin-bottom:14px;display:flex;align-items:center;gap:8px;
+  }
+  .mock-label .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);}
+
+  /* ================= PHONE ================= */
+  .phone-col{display:flex;flex-direction:column;align-items:center;}
+  .phone{
+    width:320px;background:var(--ink);border-radius:46px;padding:14px;
+    box-shadow:0 50px 90px -30px rgba(0,0,0,.65), inset 0 0 0 1px rgba(255,255,255,.05);
+    position:relative;
+  }
+  .notch{
+    position:absolute;top:14px;left:50%;transform:translateX(-50%);
+    width:110px;height:22px;background:var(--ink);border-radius:12px;z-index:6;
+    box-shadow:0 0 0 6px var(--ink);
+  }
+  .phone-inner{
+    background:var(--paper);border-radius:32px;overflow:hidden;height:664px;
+    display:flex;flex-direction:column;position:relative;
+  }
+  .status-bar{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:16px 22px 4px;font-family:var(--font-mono);font-size:.68rem;color:var(--ink);
+  }
+  .status-bar .brand-mark{display:flex;align-items:center;gap:5px;color:var(--accent);}
+  .status-bar .brand-mark svg{width:13px;height:13px;}
+
+  .screen{flex:1;overflow-y:auto;padding:6px 20px 110px;display:none;}
+  .screen.active{display:block;animation:fadein .25s ease;}
+  @keyframes fadein{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+
+  .greet-eyebrow{font-family:var(--font-mono);font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin:6px 0 2px;}
+  .greet h2{font-family:var(--font-display);font-weight:700;font-size:1.5rem;margin:0 0 14px;color:var(--ink);}
+
+  .search{
+    display:flex;align-items:center;gap:8px;background:var(--white);border:1px solid var(--line);
+    border-radius:14px;padding:11px 14px;margin-bottom:18px;color:var(--muted);font-size:.82rem;
+  }
+  .search svg{width:15px;height:15px;flex-shrink:0;}
+
+  .chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:6px;}
+  .chips::-webkit-scrollbar{display:none;}
+  .chip{
+    flex:0 0 auto;font-family:var(--font-body);font-size:.74rem;font-weight:500;
+    padding:7px 14px;border-radius:100px;border:1px solid var(--line);background:var(--white);
+    color:var(--ink);white-space:nowrap;cursor:pointer;transition:.15s;
+  }
+  .chip.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+
+  .section-title{
+    display:flex;align-items:center;justify-content:space-between;
+    margin:22px 0 10px;
+  }
+  .section-title .st-left{display:flex;align-items:center;gap:6px;font-family:var(--font-display);font-weight:700;font-size:1rem;color:var(--ink);}
+  .section-title svg{width:14px;height:14px;color:var(--accent);}
+  .section-title .see-all{font-family:var(--font-mono);font-size:.64rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+
+  .hscroll{display:flex;gap:12px;overflow-x:auto;padding-bottom:6px;margin:0 -2px;}
+  .hscroll::-webkit-scrollbar{display:none;}
+
+  .biz-card{
+    flex:0 0 148px;background:var(--white);border-radius:16px;padding:10px;border:1px solid var(--line);
+    cursor:pointer;transition:.15s;
+  }
+  .biz-card:active{transform:scale(.97);}
+  .biz-card .thumb{
+    height:78px;border-radius:10px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;
+    color:#fff;font-family:var(--font-display);font-weight:700;font-size:1.3rem;
+  }
+  .biz-card h4{font-size:.8rem;margin:0 0 3px;color:var(--ink);font-weight:600;}
+  .biz-card .meta{font-size:.65rem;color:var(--muted);display:flex;justify-content:space-between;font-family:var(--font-mono);}
+
+  .event-mini{
+    flex:0 0 168px;background:var(--white);border-radius:16px;border:1px solid var(--line);
+    overflow:hidden;cursor:pointer;
+  }
+  .event-mini .date{
+    background:var(--green-mid);color:var(--paper);padding:8px 12px;font-family:var(--font-mono);
+    font-size:.65rem;display:flex;justify-content:space-between;
+  }
+  .event-mini .body{padding:10px 12px;}
+  .event-mini h4{font-size:.78rem;margin:0 0 4px;color:var(--ink);}
+  .event-mini .meta{font-size:.65rem;color:var(--muted);}
+
+  .plan-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}
+  .plan-chip{
+    font-family:var(--font-body);font-size:.76rem;font-weight:600;color:var(--white);
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));padding:10px 14px;border-radius:14px;
+    cursor:pointer;flex:1 1 auto;text-align:center;
+  }
+
+  /* Descubre grid */
+  .cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px;}
+  .cat-tile{
+    background:var(--white);border:1px solid var(--line);border-radius:16px;padding:14px 12px;
+    display:flex;flex-direction:column;gap:8px;cursor:pointer;transition:.15s;
+  }
+  .cat-tile.active{background:var(--ink);}
+  .cat-tile.active span, .cat-tile.active svg{color:var(--paper) !important;stroke:var(--paper) !important;}
+  .cat-tile svg{width:18px;height:18px;color:var(--accent);}
+  .cat-tile span{font-size:.76rem;font-weight:600;color:var(--ink);}
+
+  .biz-row{
+    display:flex;gap:10px;align-items:center;background:var(--white);border:1px solid var(--line);
+    border-radius:14px;padding:10px;margin-bottom:8px;cursor:pointer;
+  }
+  .biz-row .thumb{width:46px;height:46px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--font-display);font-weight:700;}
+  .biz-row .txt{flex:1;min-width:0;}
+  .biz-row h4{margin:0 0 2px;font-size:.82rem;color:var(--ink);}
+  .biz-row .meta{font-size:.68rem;color:var(--muted);}
+  .biz-row .tag{font-family:var(--font-mono);font-size:.6rem;color:var(--accent);}
+
+  /* Eventos list */
+  .event-row{
+    display:flex;gap:12px;background:var(--white);border:1px solid var(--line);border-radius:14px;
+    padding:10px;margin-bottom:10px;cursor:pointer;
+  }
+  .event-row .date-badge{
+    flex-shrink:0;width:50px;height:50px;border-radius:10px;background:var(--paper-2);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    font-family:var(--font-mono);color:var(--ink);
+  }
+  .event-row .date-badge b{font-size:1rem;line-height:1;}
+  .event-row .date-badge small{font-size:.55rem;text-transform:uppercase;}
+  .event-row .txt h4{margin:0 0 3px;font-size:.82rem;color:var(--ink);}
+  .event-row .txt .meta{font-size:.68rem;color:var(--muted);}
+  .event-row .price{margin-left:auto;font-family:var(--font-mono);font-size:.7rem;color:var(--accent);align-self:center;white-space:nowrap;}
+
+  /* Asistente chat */
+  .chat-log{display:flex;flex-direction:column;gap:10px;padding-top:4px;}
+  .bubble{max-width:84%;padding:10px 13px;border-radius:16px;font-size:.8rem;line-height:1.45;}
+  .bubble.user{align-self:flex-end;background:var(--accent);color:#fff;border-bottom-right-radius:4px;}
+  .bubble.bot{align-self:flex-start;background:var(--white);color:var(--ink);border:1px solid var(--line);border-bottom-left-radius:4px;}
+  .plan-card{background:var(--paper-2);border-radius:12px;padding:10px;margin-top:8px;}
+  .plan-card .step{display:flex;justify-content:space-between;font-size:.72rem;padding:4px 0;border-bottom:1px dashed var(--line);}
+  .plan-card .step:last-of-type{border-bottom:none;}
+  .plan-card .total{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:.72rem;margin-top:6px;font-weight:600;color:var(--accent);}
+
+  .chat-input-row{
+    position:sticky;bottom:-6px;display:flex;gap:8px;background:var(--paper);padding-top:10px;
+  }
+  .chat-input-row input{
+    flex:1;border:1px solid var(--line);border-radius:100px;padding:10px 14px;font-family:var(--font-body);
+    font-size:.78rem;background:var(--white);color:var(--ink);outline:none;
+  }
+  .chat-input-row button{
+    width:38px;height:38px;border-radius:50%;border:none;background:var(--accent);color:#fff;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;
+  }
+  .chat-input-row button svg{width:15px;height:15px;}
+
+  /* Perfil */
+  .profile-head{display:flex;flex-direction:column;align-items:center;text-align:center;padding:18px 0 10px;}
+  .avatar{
+    width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--font-display);
+    font-weight:700;font-size:1.4rem;margin-bottom:10px;
+  }
+  .profile-head h3{margin:0 0 2px;font-size:1rem;color:var(--ink);}
+  .profile-head span{font-size:.72rem;color:var(--muted);font-family:var(--font-mono);}
+  .stat-trio{display:flex;justify-content:space-around;background:var(--white);border:1px solid var(--line);border-radius:14px;padding:12px 6px;margin:14px 0;}
+  .stat-trio div{text-align:center;}
+  .stat-trio b{display:block;font-family:var(--font-display);font-size:1.1rem;color:var(--ink);}
+  .stat-trio span{font-size:.62rem;color:var(--muted);}
+  .menu-list{display:flex;flex-direction:column;gap:6px;margin-top:6px;}
+  .menu-item{
+    display:flex;justify-content:space-between;align-items:center;background:var(--white);
+    border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:.8rem;color:var(--ink);cursor:pointer;
+  }
+  .switch-cta{
+    margin-top:16px;width:100%;padding:13px;border-radius:14px;border:none;
+    background:var(--ink);color:var(--paper);font-family:var(--font-body);font-weight:600;font-size:.8rem;cursor:pointer;
+  }
+
+  /* Tab bar */
+  .tabbar{
+    position:absolute;bottom:0;left:0;right:0;display:flex;justify-content:space-around;
+    padding:9px 6px 16px;background:rgba(246,241,228,.94);backdrop-filter:blur(8px);border-top:1px solid var(--line);
+  }
+  .tab{
+    display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;
+    font-family:var(--font-body);font-size:.6rem;color:var(--muted);cursor:pointer;padding:2px 6px;
+  }
+  .tab svg{width:19px;height:19px;stroke:currentColor;fill:none;}
+  .tab.active{color:var(--accent);}
+
+  /* Modal overlay (inside phone) */
+  .overlay{
+    position:absolute;inset:0;background:rgba(22,36,29,.5);display:none;align-items:flex-end;z-index:20;
+  }
+  .overlay.show{display:flex;}
+  .sheet{
+    background:var(--paper);width:100%;border-radius:24px 24px 0 0;padding:20px 20px 26px;
+    max-height:78%;overflow-y:auto;animation:slideup .25s ease;
+  }
+  @keyframes slideup{from{transform:translateY(30px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+  .sheet .handle{width:36px;height:4px;background:var(--line);border-radius:4px;margin:0 auto 14px;}
+  .sheet h3{font-family:var(--font-display);font-size:1.1rem;margin:0 0 4px;color:var(--ink);}
+  .sheet .row{display:flex;justify-content:space-between;font-size:.78rem;padding:8px 0;border-bottom:1px solid var(--line);color:var(--ink);}
+  .sheet .row span:first-child{color:var(--muted);}
+  .sheet .map-fake{
+    height:90px;border-radius:12px;margin-top:12px;
+    background:repeating-linear-gradient(135deg,var(--paper-2),var(--paper-2) 8px,var(--white) 8px,var(--white) 16px);
+    display:flex;align-items:center;justify-content:center;color:var(--muted);font-family:var(--font-mono);font-size:.65rem;
+  }
+  .sheet .cta{
+    margin-top:14px;width:100%;padding:13px;border:none;border-radius:14px;background:var(--accent);
+    color:#fff;font-weight:600;font-family:var(--font-body);font-size:.82rem;cursor:pointer;
+  }
+  .sheet .close{
+    display:block;margin:10px auto 0;background:none;border:none;color:var(--muted);font-family:var(--font-mono);
+    font-size:.68rem;cursor:pointer;text-transform:uppercase;letter-spacing:.05em;
+  }
+
+  /* toast */
+  .toast{
+    position:absolute;left:20px;right:20px;bottom:96px;background:var(--ink);color:var(--paper);
+    padding:11px 14px;border-radius:12px;font-size:.75rem;text-align:center;opacity:0;
+    transform:translateY(8px);transition:.25s;pointer-events:none;z-index:30;
+  }
+  .toast.show{opacity:1;transform:translateY(0);}
+
+  /* ================= BROWSER (Panel Comerciantes) ================= */
+  .browser-col{display:flex;flex-direction:column;align-items:center;}
+  .browser{
+    width:560px;max-width:88vw;background:var(--paper);border-radius:18px;overflow:hidden;
+    box-shadow:0 50px 90px -30px rgba(0,0,0,.65), inset 0 0 0 1px rgba(255,255,255,.05);
+    transition:box-shadow .3s;
+  }
+  .browser.pulse{box-shadow:0 0 0 3px var(--accent), 0 50px 90px -30px rgba(0,0,0,.65);}
+  .chrome{background:var(--paper-2);padding:12px 16px;display:flex;align-items:center;gap:12px;}
+  .traffic{display:flex;gap:6px;}
+  .traffic span{width:9px;height:9px;border-radius:50%;background:var(--line);}
+  .urlbar{
+    flex:1;background:var(--white);border-radius:8px;padding:6px 12px;font-family:var(--font-mono);
+    font-size:.68rem;color:var(--muted);
+  }
+  .browser-body{display:flex;height:600px;}
+  .dash-sidebar{
+    width:168px;background:var(--ink);flex-shrink:0;padding:20px 14px;display:flex;flex-direction:column;
+  }
+  .dash-brand{font-family:var(--font-display);font-weight:700;color:var(--paper);font-size:.92rem;margin-bottom:2px;}
+  .dash-brand span{display:block;font-family:var(--font-mono);font-size:.6rem;color:var(--accent-2);text-transform:uppercase;letter-spacing:.08em;margin-top:2px;}
+  .dash-nav{display:flex;flex-direction:column;gap:4px;margin-top:26px;}
+  .dash-tab{
+    text-align:left;background:none;border:none;color:rgba(246,241,228,.65);font-family:var(--font-body);
+    font-size:.8rem;padding:10px 12px;border-radius:10px;cursor:pointer;
+  }
+  .dash-tab.active{background:rgba(246,241,228,.1);color:var(--paper);font-weight:600;}
+  .dash-main{flex:1;padding:24px 26px;overflow-y:auto;}
+  .dash-panel{display:none;}
+  .dash-panel.active{display:block;animation:fadein .25s ease;}
+  .dash-h{font-family:var(--font-display);font-weight:700;font-size:1.25rem;color:var(--ink);margin:0 0 4px;}
+  .dash-sub{font-size:.8rem;color:var(--muted);margin:0 0 20px;}
+
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:22px;}
+  .stat-card{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:14px 16px;}
+  .stat-card .label{font-family:var(--font-mono);font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
+  .stat-card .num{font-family:var(--font-display);font-size:1.5rem;font-weight:700;color:var(--ink);margin:4px 0 2px;}
+  .stat-card .trend{font-size:.7rem;color:var(--accent);}
+
+  .action-list{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:6px;}
+  .action-item{display:flex;gap:10px;align-items:center;padding:10px 12px;font-size:.8rem;color:var(--ink);border-bottom:1px solid var(--line);}
+  .action-item:last-child{border-bottom:none;}
+  .action-item .bump{width:6px;height:6px;border-radius:50%;background:var(--accent-2);flex-shrink:0;}
+
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-family:var(--font-mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:6px;}
+  .field .val{background:var(--white);border:1px solid var(--line);border-radius:10px;padding:10px 13px;font-size:.85rem;color:var(--ink);}
+  .photo-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:6px;}
+  .photo-grid div{aspect-ratio:1;border-radius:8px;background:linear-gradient(135deg,var(--paper-2),var(--white));border:1px dashed var(--line);}
+
+  .promo-row{display:flex;align-items:center;justify-content:space-between;background:var(--white);border:1px solid var(--line);border-radius:12px;padding:13px 16px;margin-bottom:10px;}
+  .promo-row .ptxt h4{margin:0 0 2px;font-size:.85rem;color:var(--ink);}
+  .promo-row .ptxt span{font-size:.7rem;color:var(--muted);}
+  .toggle{width:38px;height:22px;border-radius:100px;background:var(--line);position:relative;cursor:pointer;flex-shrink:0;}
+  .toggle.on{background:var(--accent);}
+  .toggle::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s;}
+  .toggle.on::after{left:18px;}
+
+  .bar-block{margin-bottom:16px;}
+  .bar-label{display:flex;justify-content:space-between;font-size:.76rem;color:var(--ink);margin-bottom:6px;}
+  .bar-label span:last-child{font-family:var(--font-mono);color:var(--muted);}
+  .bar-track{height:9px;background:var(--paper-2);border-radius:100px;overflow:hidden;}
+  .bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2));border-radius:100px;width:0;transition:width 1s cubic-bezier(.2,.8,.2,1);}
+
+  .week-chart{display:flex;align-items:flex-end;gap:8px;height:110px;margin-top:10px;}
+  .week-chart .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;justify-content:flex-end;height:100%;}
+  .week-chart .bar{width:100%;background:var(--green-mid);border-radius:4px 4px 0 0;transition:height 1s cubic-bezier(.2,.8,.2,1);height:0;}
+  .week-chart .lbl{font-family:var(--font-mono);font-size:.6rem;color:var(--muted);}
+
+  footer.note{
+    margin-top:56px;text-align:center;font-family:var(--font-mono);font-size:.72rem;
+    color:rgba(246,241,228,.45);max-width:520px;margin-left:auto;margin-right:auto;line-height:1.6;
+  }
+
+  @media (max-width:720px){
+    .browser{width:100%;}
+    .browser-body{height:560px;}
+    .dash-sidebar{width:120px;}
+  }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="petal" viewBox="0 0 40 40">
+    <g fill="currentColor">
+      <ellipse cx="20" cy="9" rx="5.4" ry="10"/>
+      <ellipse cx="20" cy="9" rx="5.4" ry="10" transform="rotate(72 20 20)"/>
+      <ellipse cx="20" cy="9" rx="5.4" ry="10" transform="rotate(144 20 20)"/>
+      <ellipse cx="20" cy="9" rx="5.4" ry="10" transform="rotate(216 20 20)"/>
+      <ellipse cx="20" cy="9" rx="5.4" ry="10" transform="rotate(288 20 20)"/>
+    </g>
+  </symbol>
+</svg>
+
+<div class="page">
+
+  <div class="eyebrow"><svg viewBox="0 0 40 40"><use href="#petal"/></svg> Bosquejo interactivo — sin backend</div>
+  <div class="intro">
+    <h1>Click Bucaramanga</h1>
+    <p>Vista clicable de la app (ciudadano/turista) y del panel web para comerciantes. Todo el contenido —negocios, eventos, cifras— es de ejemplo. Nada se guarda ni se conecta a datos reales.</p>
+    <p class="hint">Prueba: cambia de pestaña abajo del teléfono, filtra categorías en "Descubre", escribe algo en el Asistente, o abre las pestañas del panel a la derecha.</p>
+  </div>
+
+  <div class="mockups">
+
+    <!-- ===================== PHONE ===================== -->
+    <div class="phone-col">
+      <div class="mock-label"><span class="dot"></span>App móvil — Ciudadano / Turista</div>
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="phone-inner" id="phoneInner">
+
+          <div class="status-bar">
+            <span>9:41</span>
+            <span class="brand-mark"><svg viewBox="0 0 40 40"><use href="#petal"/></svg>Click BGA</span>
+            <span>••••</span>
+          </div>
+
+          <!-- INICIO -->
+          <div class="screen active" data-screen="inicio">
+            <div class="greet-eyebrow">Buenas tardes</div>
+            <div class="greet"><h2>Bucaramanga te espera 🌸</h2></div>
+
+            <div class="search">
+              <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" fill="none"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.6" y2="16.6"/></svg>
+              Buscar comercios, planes, eventos…
+            </div>
+
+            <div class="chips" id="homeChips">
+              <div class="chip active" data-chip="todos">Todos</div>
+              <div class="chip" data-chip="restaurantes">Restaurantes</div>
+              <div class="chip" data-chip="cafes">Cafés</div>
+              <div class="chip" data-chip="miradores">Miradores</div>
+              <div class="chip" data-chip="nocturna">Vida nocturna</div>
+              <div class="chip" data-chip="pet">Pet friendly</div>
+            </div>
+
+            <div class="section-title">
+              <div class="st-left"><svg viewBox="0 0 40 40"><use href="#petal"/></svg>Cerca de ti</div>
+              <div class="see-all">Ver todos</div>
+            </div>
+            <div class="hscroll">
+              <div class="biz-card" onclick="openSheet('Café Guayacán','Cafetería · Cabecera del Llano',[['Horario','7:00am – 8:00pm'],['Calificación','4.8 ★ (212 reseñas)'],['Distancia','0.4 km']])">
+                <div class="thumb" style="background:linear-gradient(135deg,#D6478E,#F2A03D)">CG</div>
+                <h4>Café Guayacán</h4>
+                <div class="meta"><span>4.8 ★</span><span>0.4 km</span></div>
+              </div>
+              <div class="biz-card" onclick="openSheet('Bocadillos Doña Inés','Dulces típicos · Centro',[['Horario','8:00am – 6:00pm'],['Calificación','4.6 ★ (98 reseñas)'],['Distancia','0.8 km']])">
+                <div class="thumb" style="background:linear-gradient(135deg,#2B4636,#3F6650)">DI</div>
+                <h4>Doña Inés</h4>
+                <div class="meta"><span>4.6 ★</span><span>0.8 km</span></div>
+              </div>
+              <div class="biz-card" onclick="openSheet('Mirador de Morrorico','Turismo · Morrorico',[['Horario','6:00am – 6:00pm'],['Calificación','4.9 ★ (540 reseñas)'],['Distancia','2.1 km']])">
+                <div class="thumb" style="background:linear-gradient(135deg,#F2A03D,#D6478E)">MM</div>
+                <h4>Mirador Morrorico</h4>
+                <div class="meta"><span>4.9 ★</span><span>2.1 km</span></div>
+              </div>
+            </div>
+
+            <div class="section-title">
+              <div class="st-left"><svg viewBox="0 0 40 40"><use href="#petal"/></svg>Próximos eventos</div>
+              <div class="see-all">Ver agenda</div>
+            </div>
+            <div class="hscroll">
+              <div class="event-mini" onclick="goTab('eventos')">
+                <div class="date"><span>15 AGO</span><span>Gratis</span></div>
+                <div class="body"><h4>Feria de Bucaramanga</h4><div class="meta">Parque de los Niños</div></div>
+              </div>
+              <div class="event-mini" onclick="goTab('eventos')">
+                <div class="date"><span>29 AGO</span><span>$35k</span></div>
+                <div class="body"><h4>Guayacanes en Flor</h4><div class="meta">Parque San Pío</div></div>
+              </div>
+            </div>
+
+            <div class="section-title">
+              <div class="st-left"><svg viewBox="0 0 40 40"><use href="#petal"/></svg>Planes para hoy</div>
+            </div>
+            <div class="plan-chips">
+              <div class="plan-chip" onclick="goTab('asistente')">Plan en familia</div>
+              <div class="plan-chip" onclick="goTab('asistente')">Plan romántico</div>
+              <div class="plan-chip" onclick="goTab('asistente')">Ruta cultural</div>
+            </div>
+          </div>
+
+          <!-- DESCUBRE -->
+          <div class="screen" data-screen="descubre">
+            <div class="greet-eyebrow" style="margin-top:14px;">Explorar</div>
+            <div class="greet"><h2>Descubre Bucaramanga</h2></div>
+
+            <div class="cat-grid">
+              <div class="cat-tile active" data-cat="todos"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" fill="none"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span>Todos</span></div>
+              <div class="cat-tile" data-cat="comida"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" fill="none"><path d="M6 2v20M6 2c-2 0-2 4 0 6M6 8V2M18 2v20M14 10c0-4 2-8 4-8v20"/></svg><span>Comida</span></div>
+              <div class="cat-tile" data-cat="turismo"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" fill="none"><circle cx="12" cy="12" r="9"/><path d="M15 9l-4 2-2 4 4-2 2-4z"/></svg><span>Turismo</span></div>
+              <div class="cat-tile" data-cat="compras"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" fill="none"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8a3 3 0 016 0"/></svg><span>Compras</span></div>
+              <div class="cat-tile" data-cat="servicios"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" fill="none"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 00-.2-1.6l2-1.5-2-3.4-2.3.9a7 7 0 00-2.8-1.6L13 2h-4l-.7 2.8a7 7 0 00-2.8 1.6l-2.3-.9-2 3.4 2 1.5A7 7 0 005 12"/></svg><span>Servicios</span></div>
+              <div class="cat-tile" data-cat="pet"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" fill="none"><circle cx="8" cy="8" r="1.8"/><circle cx="16" cy="8" r="1.8"/><circle cx="5" cy="13" r="1.6"/><circle cx="19" cy="13" r="1.6"/><path d="M12 13c-3 0-5 2.2-5 4.5S9 21 12 21s5-1.2 5-3.5S15 13 12 13z"/></svg><span>Pet friendly</span></div>
+            </div>
+
+            <div class="section-title" style="margin-top:20px;">
+              <div class="st-left"><svg viewBox="0 0 40 40"><use href="#petal"/></svg>Comercios</div>
+              <div class="see-all" id="descCount">8 resultados</div>
+            </div>
+            <div id="descList"></div>
+          </div>
+
+          <!-- EVENTOS -->
+          <div class="screen" data-screen="eventos">
+            <div class="greet-eyebrow" style="margin-top:14px;">Agenda</div>
+            <div class="greet"><h2>Eventos de la ciudad</h2></div>
+            <div class="chips">
+              <div class="chip active">Esta semana</div>
+              <div class="chip">Este mes</div>
+              <div class="chip">Gratis</div>
+            </div>
+
+            <div style="margin-top:14px;">
+              <div class="event-row" onclick="openSheet('Feria de Bucaramanga','15 de agosto',[['Hora','10:00am – 8:00pm'],['Lugar','Parque de los Niños'],['Precio','Entrada libre']])">
+                <div class="date-badge"><b>15</b><small>AGO</small></div>
+                <div class="txt"><h4>Feria de Bucaramanga</h4><div class="meta">Parque de los Niños</div></div>
+                <div class="price">Gratis</div>
+              </div>
+              <div class="event-row" onclick="openSheet('Mercado Campesino','22 de agosto',[['Hora','7:00am – 2:00pm'],['Lugar','Cabecera del Llano'],['Precio','Entrada libre']])">
+                <div class="date-badge"><b>22</b><small>AGO</small></div>
+                <div class="txt"><h4>Mercado Campesino</h4><div class="meta">Cabecera del Llano</div></div>
+                <div class="price">Gratis</div>
+              </div>
+              <div class="event-row" onclick="openSheet('Guayacanes en Flor','29 de agosto',[['Hora','6:00pm – 11:00pm'],['Lugar','Parque San Pío'],['Precio','$35.000']])">
+                <div class="date-badge"><b>29</b><small>AGO</small></div>
+                <div class="txt"><h4>Guayacanes en Flor</h4><div class="meta">Parque San Pío · Concierto</div></div>
+                <div class="price">$35.000</div>
+              </div>
+              <div class="event-row" onclick="openSheet('Festival Gastronómico Santander','05 de septiembre',[['Hora','12:00pm – 9:00pm'],['Lugar','Cañaveral'],['Precio','$20.000']])">
+                <div class="date-badge"><b>05</b><small>SEP</small></div>
+                <div class="txt"><h4>Festival Gastronómico</h4><div class="meta">Cañaveral</div></div>
+                <div class="price">$20.000</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ASISTENTE -->
+          <div class="screen" data-screen="asistente">
+            <div class="greet-eyebrow" style="margin-top:14px;">Asistente</div>
+            <div class="greet"><h2 style="font-size:1.25rem;">¿Qué te provoca hacer hoy?</h2></div>
+
+            <div class="chat-log" id="chatLog">
+              <div class="bubble user">¿Qué puedo hacer hoy con $100.000 y quiero salir con mi familia?</div>
+              <div class="bubble bot">
+                Con ese presupuesto arma un plan familiar completo por Cabecera:
+                <div class="plan-card">
+                  <div class="step"><span>🍽️ Almuerzo — El Pórtico</span><span>$60.000</span></div>
+                  <div class="step"><span>🌳 Paseo — Parque de los Niños</span><span>Gratis</span></div>
+                  <div class="step"><span>🍬 Postre — Doña Inés</span><span>$15.000</span></div>
+                  <div class="total"><span>Total estimado</span><span>$75.000 · te sobran $25.000</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="chat-input-row">
+              <input type="text" id="chatInput" placeholder="Escribe tu pregunta…">
+              <button onclick="sendChat()">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- PERFIL -->
+          <div class="screen" data-screen="perfil">
+            <div class="profile-head">
+              <div class="avatar">JS</div>
+              <h3>Julián Serrano</h3>
+              <span>Vecino de Cabecera</span>
+            </div>
+            <div class="stat-trio">
+              <div><b>18</b><span>Visitados</span></div>
+              <div><b>6</b><span>Reseñas</span></div>
+              <div><b>3</b><span>Cupones</span></div>
+            </div>
+            <div class="menu-list">
+              <div class="menu-item">Mis favoritos <span>›</span></div>
+              <div class="menu-item">Mis reseñas <span>›</span></div>
+              <div class="menu-item">Notificaciones <span>›</span></div>
+              <div class="menu-item">Configuración <span>›</span></div>
+            </div>
+            <button class="switch-cta" onclick="jumpToBrowser()">Cambiar a modo comerciante →</button>
+          </div>
+
+          <!-- overlay / bottom sheet -->
+          <div class="overlay" id="overlay" onclick="if(event.target===this)closeSheet()">
+            <div class="sheet" id="sheet"></div>
+          </div>
+          <div class="toast" id="toast"></div>
+
+          <nav class="tabbar">
+            <button class="tab active" data-tab="inicio" onclick="goTab('inicio')">
+              <svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7"/><path d="M6 10v9a1 1 0 001 1h10a1 1 0 001-1v-9"/></svg>
+              Inicio
+            </button>
+            <button class="tab" data-tab="descubre" onclick="goTab('descubre')">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15 9l-4 2-2 4 4-2 2-4z"/></svg>
+              Descubre
+            </button>
+            <button class="tab" data-tab="eventos" onclick="goTab('eventos')">
+              <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+              Eventos
+            </button>
+            <button class="tab" data-tab="asistente" onclick="goTab('asistente')">
+              <svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 01-11.5 7.2L4 21l1.8-5.5A8 8 0 1121 12z"/></svg>
+              Asistente
+            </button>
+            <button class="tab" data-tab="perfil" onclick="goTab('perfil')">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c1.5-4 5-5 7-5s5.5 1 7 5"/></svg>
+              Perfil
+            </button>
+          </nav>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== BROWSER / PANEL COMERCIANTE ===================== -->
+    <div class="browser-col">
+      <div class="mock-label"><span class="dot"></span>Panel web — Comerciante</div>
+      <div class="browser" id="browserMock">
+        <div class="chrome">
+          <div class="traffic"><span></span><span></span><span></span></div>
+          <div class="urlbar">panel.clickbucaramanga.co/mi-negocio</div>
+        </div>
+        <div class="browser-body">
+          <aside class="dash-sidebar">
+            <div class="dash-brand">Click Bucaramanga<span>Panel comerciante</span></div>
+            <nav class="dash-nav">
+              <button class="dash-tab active" data-panel="resumen" onclick="goPanel('resumen')">Resumen</button>
+              <button class="dash-tab" data-panel="negocio" onclick="goPanel('negocio')">Mi negocio</button>
+              <button class="dash-tab" data-panel="promos" onclick="goPanel('promos')">Promociones</button>
+              <button class="dash-tab" data-panel="stats" onclick="goPanel('stats')">Estadísticas</button>
+            </nav>
+          </aside>
+          <main class="dash-main">
+
+            <div class="dash-panel active" data-panel="resumen">
+              <h2 class="dash-h">Hola, Café Guayacán 👋</h2>
+              <p class="dash-sub">Esto es lo que pasó en tu perfil esta semana.</p>
+              <div class="stat-grid">
+                <div class="stat-card"><div class="label">Visitas al perfil</div><div class="num">482</div><div class="trend">↑ 12% vs. semana pasada</div></div>
+                <div class="stat-card"><div class="label">Clics en WhatsApp</div><div class="num">96</div><div class="trend">↑ 8%</div></div>
+                <div class="stat-card"><div class="label">Calificación</div><div class="num">4.8 ★</div><div class="trend">212 reseñas</div></div>
+                <div class="stat-card"><div class="label">Reseñas nuevas</div><div class="num">6</div><div class="trend">2 por responder</div></div>
+              </div>
+              <div class="action-list">
+                <div class="action-item"><span class="bump"></span>Responder 2 reseñas nuevas</div>
+                <div class="action-item"><span class="bump"></span>Tu promoción "Café + postre" vence en 3 días</div>
+                <div class="action-item"><span class="bump"></span>Te faltan 4 fotos para completar tu perfil</div>
+              </div>
+            </div>
+
+            <div class="dash-panel" data-panel="negocio">
+              <h2 class="dash-h">Mi negocio</h2>
+              <p class="dash-sub">Así te ven los usuarios en la app.</p>
+              <div class="field"><label>Nombre</label><div class="val">Café Guayacán</div></div>
+              <div class="field"><label>Categoría</label><div class="val">Cafetería</div></div>
+              <div class="field"><label>Horario</label><div class="val">Lun – Sáb · 7:00am – 8:00pm</div></div>
+              <div class="field"><label>Dirección</label><div class="val">Cra 33 #45-12, Cabecera</div></div>
+              <div class="field"><label>Fotos</label><div class="photo-grid"><div></div><div></div><div></div><div></div><div></div><div></div></div></div>
+            </div>
+
+            <div class="dash-panel" data-panel="promos">
+              <h2 class="dash-h">Promociones</h2>
+              <p class="dash-sub">Actívalas o pausalas cuando quieras.</p>
+              <div class="promo-row"><div class="ptxt"><h4>2x1 en café los martes</h4><span>128 vistas esta semana</span></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+              <div class="promo-row"><div class="ptxt"><h4>Postre gratis con combo almuerzo</h4><span>84 vistas esta semana</span></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+              <div class="promo-row"><div class="ptxt"><h4>Descuento 15% estudiantes</h4><span>Pausada</span></div><div class="toggle" onclick="this.classList.toggle('on')"></div></div>
+            </div>
+
+            <div class="dash-panel" data-panel="stats">
+              <h2 class="dash-h">Estadísticas</h2>
+              <p class="dash-sub">Categorías más buscadas esta semana</p>
+              <div class="bar-block"><div class="bar-label"><span>Cafeterías</span><span>82%</span></div><div class="bar-track"><div class="bar-fill" data-w="82"></div></div></div>
+              <div class="bar-block"><div class="bar-label"><span>Restaurantes</span><span>64%</span></div><div class="bar-track"><div class="bar-fill" data-w="64"></div></div></div>
+              <div class="bar-block"><div class="bar-label"><span>Postres</span><span>47%</span></div><div class="bar-track"><div class="bar-fill" data-w="47"></div></div></div>
+              <div class="bar-block"><div class="bar-label"><span>Turismo</span><span>30%</span></div><div class="bar-track"><div class="bar-fill" data-w="30"></div></div></div>
+
+              <p class="dash-sub" style="margin-top:20px;">Visitas por día</p>
+              <div class="week-chart" id="weekChart">
+                <div class="col"><div class="bar" data-h="40"></div><div class="lbl">L</div></div>
+                <div class="col"><div class="bar" data-h="55"></div><div class="lbl">M</div></div>
+                <div class="col"><div class="bar" data-h="38"></div><div class="lbl">M</div></div>
+                <div class="col"><div class="bar" data-h="62"></div><div class="lbl">J</div></div>
+                <div class="col"><div class="bar" data-h="70"></div><div class="lbl">V</div></div>
+                <div class="col"><div class="bar" data-h="90"></div><div class="lbl">S</div></div>
+                <div class="col"><div class="bar" data-h="75"></div><div class="lbl">D</div></div>
+              </div>
+            </div>
+
+          </main>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer class="note">🌸 Esto es un bosquejo visual — no hay backend, IA real ni datos en vivo. Todo el contenido (negocios, eventos, cifras) es de ejemplo, pensado para mostrar cómo se sentiría usar Click Bucaramanga.</footer>
+</div>
+
+<script>
+  // ---------- data ----------
+  const businesses = [
+    {name:'Café Guayacán', cat:'comida', tag:'Cafetería', meta:'Cabecera del Llano · 4.8 ★', init:'CG', c1:'#D6478E', c2:'#F2A03D'},
+    {name:'Restaurante El Pórtico', cat:'comida', tag:'Restaurante', meta:'Cabecera · 4.7 ★', init:'EP', c1:'#3F6650', c2:'#2B4636'},
+    {name:'Mirador de Morrorico', cat:'turismo', tag:'Mirador', meta:'Morrorico · 4.9 ★', init:'MM', c1:'#F2A03D', c2:'#D6478E'},
+    {name:'Mirador Cristo Rey', cat:'turismo', tag:'Cañón del Chicamocha', meta:'Vía Girón · 4.8 ★', init:'CR', c1:'#2B4636', c2:'#3F6650'},
+    {name:'Librería El Alfiz', cat:'compras', tag:'Libros y papelería', meta:'Centro · 4.5 ★', init:'LA', c1:'#D6478E', c2:'#3F6650'},
+    {name:'Taller Cerámica Girón', cat:'compras', tag:'Artesanías', meta:'Girón · 4.7 ★', init:'CG', c1:'#F2A03D', c2:'#2B4636'},
+    {name:'Lavandería Express', cat:'servicios', tag:'Servicios del hogar', meta:'Cabecera · 4.4 ★', init:'LE', c1:'#3F6650', c2:'#D6478E'},
+    {name:'Bicicletas Ruta Verde', cat:'servicios', tag:'Alquiler y taller', meta:'Provenza · 4.6 ★', init:'RV', c1:'#2B4636', c2:'#F2A03D'},
+  ];
+
+  function renderList(filter){
+    const list = document.getElementById('descList');
+    const items = filter==='todos' ? businesses : businesses.filter(b=>b.cat===filter);
+    document.getElementById('descCount').textContent = items.length + ' resultado' + (items.length===1?'':'s');
+    list.innerHTML = items.map(b=>`
+      <div class="biz-row" onclick="openSheet('${b.name}','${b.tag} · ${b.meta.split(' · ')[0]}',[['Categoría','${b.tag}'],['Calificación','${b.meta.split('· ')[1]}'],['Ubicación','${b.meta.split(' · ')[0]}']])">
+        <div class="thumb" style="background:linear-gradient(135deg,${b.c1},${b.c2})">${b.init}</div>
+        <div class="txt"><h4>${b.name}</h4><div class="meta">${b.meta}</div></div>
+        <div class="tag">${b.tag}</div>
+      </div>`).join('');
+  }
+  renderList('todos');
+
+  // category tiles (Descubre)
+  document.querySelectorAll('.cat-tile').forEach(t=>{
+    t.addEventListener('click', ()=>{
+      document.querySelectorAll('.cat-tile').forEach(x=>x.classList.remove('active'));
+      t.classList.add('active');
+      renderList(t.dataset.cat);
+    });
+  });
+
+  // home chips (cosmetic)
+  document.querySelectorAll('#homeChips .chip').forEach(c=>{
+    c.addEventListener('click', ()=>{
+      document.querySelectorAll('#homeChips .chip').forEach(x=>x.classList.remove('active'));
+      c.classList.add('active');
+    });
+  });
+
+  // ---------- tab navigation ----------
+  function goTab(name){
+    document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active', s.dataset.screen===name));
+    document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===name));
+    document.getElementById('phoneInner').scrollTop = 0;
+    const scr = document.querySelector(`.screen[data-screen="${name}"]`);
+    if(scr) scr.scrollTop = 0;
+  }
+
+  // ---------- bottom sheet ----------
+  function openSheet(title, sub, rows){
+    const sheet = document.getElementById('sheet');
+    sheet.innerHTML = `
+      <div class="handle"></div>
+      <h3>${title}</h3>
+      <div style="font-size:.78rem;color:var(--muted);margin-bottom:10px;">${sub}</div>
+      ${rows.map(r=>`<div class="row"><span>${r[0]}</span><span>${r[1]}</span></div>`).join('')}
+      <div class="map-fake">mapa de ejemplo</div>
+      <button class="cta" onclick="fakeAction()">Ver más / Inscribirme</button>
+      <button class="close" onclick="closeSheet()">Cerrar</button>
+    `;
+    document.getElementById('overlay').classList.add('show');
+  }
+  function closeSheet(){ document.getElementById('overlay').classList.remove('show'); }
+  function fakeAction(){
+    closeSheet();
+    showToast('🌸 Esto es solo un bosquejo — aquí iría la acción real');
+  }
+  function showToast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'), 2200);
+  }
+
+  // ---------- chat ----------
+  function sendChat(){
+    const input = document.getElementById('chatInput');
+    const val = input.value.trim();
+    if(!val) return;
+    const log = document.getElementById('chatLog');
+    const u = document.createElement('div');
+    u.className = 'bubble user';
+    u.textContent = val;
+    log.appendChild(u);
+    input.value = '';
+    setTimeout(()=>{
+      const b = document.createElement('div');
+      b.className = 'bubble bot';
+      b.textContent = 'Estoy revisando comercios y eventos cerca de ti… en la versión final aquí aparecería tu plan personalizado con IA. (Esto es solo una vista previa 🌸)';
+      log.appendChild(b);
+      log.scrollTop = log.scrollHeight;
+    }, 550);
+    log.scrollTop = log.scrollHeight;
+  }
+  document.getElementById('chatInput').addEventListener('keydown', e=>{ if(e.key==='Enter') sendChat(); });
+
+  // ---------- jump to browser mockup ----------
+  function jumpToBrowser(){
+    document.getElementById('browserMock').scrollIntoView({behavior:'smooth', block:'center'});
+    const b = document.getElementById('browserMock');
+    b.classList.add('pulse');
+    setTimeout(()=>b.classList.remove('pulse'), 1400);
+  }
+
+  // ---------- dashboard panels ----------
+  function goPanel(name){
+    document.querySelectorAll('.dash-panel').forEach(p=>p.classList.toggle('active', p.dataset.panel===name));
+    document.querySelectorAll('.dash-tab').forEach(t=>t.classList.toggle('active', t.dataset.panel===name));
+    if(name==='stats') animateStats();
+  }
+  function animateStats(){
+    document.querySelectorAll('.bar-fill').forEach(el=>{ el.style.width = el.dataset.w + '%'; });
+    document.querySelectorAll('.week-chart .bar').forEach(el=>{ el.style.height = el.dataset.h + '%'; });
+  }
+  // animate on first load if stats happens to be visible later; trigger once after load too
+  window.addEventListener('load', ()=>{ setTimeout(animateStats, 300); });
+</script>
+</body>
+</html>
